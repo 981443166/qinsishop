@@ -1,0 +1,237 @@
+--- a/assets/www/js/app.min.js
++++ b/assets/www/js/app.min.js
+@@ -24324,6 +24324,7 @@
+ 
+   // app 热更新
+   function appHotUpdate(showTips) {
++    return; // 在线更新已移除（热更新）
+     if (window.cordova && window.codePush) {
+       var syncOptions = {
+         installMode: ionic.Platform.isAndroid() ? InstallMode.ON_NEXT_RESTART : InstallMode.IMMEDIATE,
+@@ -24432,6 +24433,7 @@
+ 
+   // app 热更新 静默模式
+   function appHotUpdateSilent() {
++    return; // 在线更新已移除（静默热更新）
+     // 每次静默检查前先初始化变量
+     $rootScope.appHotUpdateObj = {
+       isNeedNotifyApplicationReady: false,
+@@ -26647,7 +26649,7 @@
+     $scope.appCodepushVersion = ServerConfig.innerAppVersion;
+ 
+     // 获取当前已安装的热更新版本
+-    if (window.codePush) {
++    if (false) {
+       window.codePush.getCurrentPackage(function (update) {
+         $timeout(function () {
+           $scope.appCodepushVersion = update.label;
+@@ -66804,7 +66806,7 @@
+           }
+         }
+         // 检查热更新
+-        if (window.cordova && window.codePush) {
++        if (false) {
+           commonDataInterface.getCodepushDeploymentKey().then(function () {
+             // 检查是否启用热更新代码
+             window.codePush.checkForUpdate(function (update) {
+@@ -70355,6 +70357,7 @@
+   // 检查更新
+   $rootScope.stopHotUpdateAppEvent = undefined;
+   $rootScope.updateApp = function (isManual) {
++    return; // 在线更新已移除（原生整包更新）
+     $ionicLoading.show({
+       template: '正在检查更新...',
+       duration: 10000
+@@ -70409,6 +70412,7 @@
+ 
+   // 检查热更新
+   var appHotUpdate = function appHotUpdate(isManual) {
++    return; // 在线更新已移除（账号页热更新）
+     if (angular.isDefined($rootScope.stopHotUpdateAppEvent)) {
+       $ionicLoading.hide();
+       Tools.toastShow('正在下载安装包！');
+@@ -74264,6 +74268,7 @@
+ 
+   // 检查有没更新
+   var checkForUpdate = function checkForUpdate() {
++    return; // 在线更新已移除（自动检查更新）
+     if (window.cordova) {
+       if (ionic.Platform.isIOS()) {
+         // 返回所有的json版本信息--仅在有新版本的时候才返回
+@@ -253100,7 +253105,11 @@
+ 
+   // 从服务端搜索商品，每次搜索结果存入$scope.saleOrder.goodsGroup中
+   $scope.storeOrder.searchGoods = function (isFirstLoad) {
+-    $scope.isLoading = true;
++    // 盘点单带关键字搜索时只做局部 loading，避免整页遮罩与滚动跳动
++    var storeKeywordSearch = $scope.search.orderType === 'store' && !!($scope.search.goodKey || '').trim();
++    var storeRequestKey = $scope.search.goodKey || '';
++    $scope.isLoading = !storeKeywordSearch;
++    $scope.search.listSearching = storeKeywordSearch;
+     $scope.search.currentPageNum = 1;
+     var index = $scope.search.blandIds.indexOf(0);
+     if (index > -1) {
+@@ -253152,7 +253161,9 @@
+     }
+     //搜索关键词则清空分类
+     //分类搜索开始
+-    lbSpinnerDialog.show(true);
++    if (!storeKeywordSearch) {
++      lbSpinnerDialog.show(true);
++    }
+     //分类及子分类的字符串
+     $scope.search.categoryIdsStr = $scope.search.selectedGoodType ? Tools.getCategoryChildIds($scope.allCategoryList, $scope.search.selectedGoodType.id).toString() : $scope.search.selectedGoodType === 0 ? 'none' : '';
+ 
+@@ -253171,6 +253182,8 @@
+     }
+     if ($scope.search.orderType == 'store' && !$scope.selectAffiliation.id) {
+       lbSpinnerDialog.hide();
++      $scope.isLoading = false;
++      $scope.search.listSearching = false;
+       return false;
+     }
+     service({
+@@ -253193,12 +253206,23 @@
+         $scope.search.goodListForSearchKey = [];
+       }
+       $scope.pushToGoodsGroup(data, $scope.search.orderType);
++      if ($scope.search.orderType === 'store') {
++        var resultSnMap = {};
++        ($scope.search.goodListForSearchKey || []).forEach(function (item) {
++          resultSnMap[item.goodsSn] = 1;
++        });
++        $scope.search.resultSnMap = resultSnMap;
++        $scope.search.serverResultKey = storeRequestKey;
++      }
+       //是否显示加载更多
+       $scope.loadMoreBtn = data.currentPage < data.totalPage;
+       $scope.$broadcast('scroll.infiniteScrollComplete');
+     })["finally"](function () {
+-      lbScrollDelegate.scrollTop('storeGoodModalCtrlScroll');
++      if (!storeKeywordSearch) {
++        lbScrollDelegate.scrollTop('storeGoodModalCtrlScroll');
++      }
+       $scope.isLoading = false;
++      $scope.search.listSearching = false;
+       lbSpinnerDialog.hide();
+     });
+   };
+@@ -253296,6 +253320,12 @@
+         $scope.search.goodListForSearchKey = $scope.search.goodListForSearchKey.concat(data.optionList);
+       }
+       $scope.pushToGoodsGroup(data, $scope.search.orderType);
++      if ($scope.search.orderType === 'store' && $scope.search.serverResultKey === ($scope.search.goodKey || '')) {
++        $scope.search.resultSnMap = $scope.search.resultSnMap || {};
++        (data && data.optionList ? data.optionList : []).forEach(function (item) {
++          $scope.search.resultSnMap[item.goodsSn] = 1;
++        });
++      }
+       // 是否显示加载更多, 如果没有加载过弹窗，则不需要触发加载更多
+       !$scope.isFirstLoad ? $scope.loadMoreBtn = data.currentPage < data.totalPage : $scope.loadMoreBtn = false;
+       !$scope.isFirstLoad && $scope.$broadcast('scroll.infiniteScrollComplete');
+@@ -254183,6 +254213,39 @@
+     }
+   };
+ 
++  // 单品模式：本地关键字过滤（仅盘点单启用，输入时不再整页重查）
++  var singleModeSearchTextCache = {};
++  var singleModeLocalMatch = function (good, keyword) {
++    var cacheKey = good.goodsSn;
++    var text = singleModeSearchTextCache[cacheKey];
++    if (text === undefined) {
++      text = [good.name, good.goodsSn, good.barCode, good.specs, good.helpCode, good.pinyin, good.propertyName, good.propertyValueName]
++        .filter(function (item) { return item !== undefined && item !== null && item !== ''; })
++        .join(' ').toLowerCase();
++      singleModeSearchTextCache[cacheKey] = text;
++    }
++    return text.indexOf(keyword.toLowerCase()) > -1;
++  };
++  $scope.singleModeVisible = function (good) {
++    if (!$scope.search || $scope.search.orderType !== 'store') {
++      return true;
++    }
++    var rawKey = $scope.search.goodKey || '';
++    if (rawKey.trim() === '') {
++      return true;
++    }
++    if ($scope.search.serverResultKey === rawKey && $scope.search.resultSnMap) {
++      return !!$scope.search.resultSnMap[good.goodsSn];
++    }
++    return singleModeLocalMatch(good, rawKey.trim());
++  };
++  // 单品模式输入框：盘点单只做本地过滤；调拨单保持原有服务端搜索
++  $scope.onKeywordInput = function () {
++    if (!$scope.search || $scope.search.orderType !== 'store') {
++      $scope.storeOrder.searchGoodsByKeyword(false);
++    }
++  };
++
+   // 商品选择类别
+   $scope.selectGoodType = function (item) {
+     // 单品模式
+@@ -254272,6 +254335,11 @@
+     if ($scope.mulSpecData.selectGoodModel == $scope.mulSpecData.SINGLEMODEL) {
+       $scope.search.goodKey = '';
+       $scope.focused_good = 'centered';
++      if ($scope.search.orderType === 'store') {
++        // 盘点单清空关键字只恢复本地列表，不再触发请求
++        $scope.search.serverResultKey = null;
++        return;
++      }
+       $scope.goodComfirmSearch();
+     } else {
+       $scope.mulSpecData.search.searchKey = '';
+
+--- a/assets/www/html/store/selectGoodMulByUnit.html
++++ b/assets/www/html/store/selectGoodMulByUnit.html
+@@ -40,7 +40,7 @@
+ 							ng-model="search.goodKey"
+ 							ng-focus="focused_good = 'text-left'"
+ 							ng-blur="focused_good = ((search.goodKey.length)?'text-left':'centered')"
+-							ng-change="storeOrder.searchGoodsByKeyword(false);"
++							ng-change="onKeywordInput();"
+ 							autocomplete="off"
+ 						/>
+ 					</form>
+@@ -151,9 +151,10 @@
+ 					<div class="lb-sales-statistics-selectFilter-mask lb-mulSpec-goodPriceControl-index99" ng-if="isShowCategoryList" ng-click="openCategoryListHandle()"></div>
+ 					<!-- 单品模式 -->
+ 					<div ng-if="mulSpecData.selectGoodModel == mulSpecData.SINGLEMODEL">
++						<div class="tc lb-color-caption f12 p5" ng-if="search.listSearching">正在搜索全部商品…</div>
+ 						<div class="list" ng-hide="isLoading">
+ 							<!--filterGoods为过滤后的商品-->
+-							<div class="item item-thumbnail-left pt0 pl80" ng-repeat="good in filterGoods = (storeOrder.goodsGroup | filter : filterCat) " ng-if="good.main == 1 && goodsIsShow(good)" on-tap="updateSelectGoodNum(good);">
++							<div class="item item-thumbnail-left pt0 pl80" ng-repeat="good in filterGoods = (storeOrder.goodsGroup | filter : (search.orderType == 'store' ? singleModeVisible : filterCat)) " ng-if="good.main == 1 && goodsIsShow(good)" on-tap="updateSelectGoodNum(good);">
+ 								<img class="lb-border-image obj-contain lb-multiunit2-good-list-img" ng-src="{{getListPictureUrl(good.imagine)}}" />
+ 								<!-- 序列号 与 批次图标 -->
+ 								<div class="lb-batch-store-list-icon-box">
+@@ -197,7 +198,7 @@
+ 								<img ng-src="{{ formatMicroAppImgSrc('img/noSearch.png') }}" class="w70" />
+ 								<div ng-if="!orderObj.isHaveGoods">没有找到想要的东西？可尝试</div>
+ 								<div class="positive mt20 lb-saleSearch-bottom">
+-									<div class="lb-saleSearch-button" ng-click="storeOrder.searchGoodsByKeyword(false);">查询全部分类</div>
++									<div class="lb-saleSearch-button" ng-click="goodComfirmSearch();">查询全部分类</div>
+ 									<div class="lb-saleSearch-button" on-tap="goToAddGoods();">新增商品</div>
+ 								</div>
+ 							</div>
+@@ -209,7 +210,7 @@
+ 							<img ng-src="{{ formatMicroAppImgSrc('img/emptySale.png') }}" class="w120" />
+ 							<div ng-if="!orderObj.isHaveGoods">没有找到想要的东西？可尝试</div>
+ 							<div class="positive mt20 lb-saleSearch-bottom">
+-								<div class="lb-saleSearch-button" ng-click="storeOrder.searchGoodsByKeyword(false);">查询全部分类</div>
++								<div class="lb-saleSearch-button" ng-click="goodComfirmSearch();">查询全部分类</div>
+ 								<div class="lb-saleSearch-button" on-tap="goToAddGoods();">新增商品</div>
+ 							</div>
+ 						</div>
+
+--- a/assets/www/html/account/main.html
++++ b/assets/www/html/account/main.html
+@@ -66,7 +66,7 @@
+ 			</a>
+ 		</div>
+ 		<div class="list">
+-			<a class="item item-icon-left item-icon-right" ng-click="updateApp(true);" ng-if="platformIsAndroid || !isExceptionForAppStore || !isExceptionForGoogle">
++			<a class="item item-icon-left item-icon-right" ng-click="updateApp(true);" ng-if="false">
+ 				<i class="icon ion-ios-refresh-outline"></i>
+ 				检查更新
+ 				<i class="icon ion-ios-arrow-right lb-about-list-arrow"></i>
