@@ -13,14 +13,15 @@
 | 1 | 盘点·单品模式搜索优化 | 输入改为本地过滤，回车/“查询全部分类”才走服务端；局部 loading，不回顶、不重置分类 |
 | 2 | 移除在线更新 | 关闭 CodePush 热更新、原生整包更新、“检查更新”入口 |
 | 3 | 移除营销菜单 | 删除 19 个营销菜单项，隐藏销售 Tab 的营销区块及“生意圈/秦丝商学院”；收银台优惠算价逻辑保留 |
-| 4 | 移除首页模块 | 删除首页“智能客户分群营销”“便捷服务”及“切换到旧版首页”按钮 |
+| 4 | 移除首页模块 | 删除首页“智能客户分群营销”“便捷服务”“切换到旧版首页”按钮 |
+| 5 | 移除首页 Banner 与入口 | 删除顶部 Banner、活动横幅、“生意赋能”“邀请有礼” |
 
 详细说明见 `docs/`。
 
 ## 产物
 
 - `dist/qinsilk_5.31.5_no-marketing-optimized.apk`
-  - SHA-256：`78356A23BA18AF7C9FA1E30E5FEBC3B6486CDE106759603533E7B99A04254EEC`
+  - SHA-256：`4FADA7D1A456FB11A94BC4CC772EF296D3570C05B48CF6FDE465CBC11F271CEC`
   - 签名：v1 + v2 + v3（自签名证书 `CN=Qinsilk Debug`）
   - 与原包签名不同，安装前需卸载旧包
 
@@ -32,6 +33,7 @@ python patches/apply_update_removal.py
 python patches/apply_marketing_removal.py
 python patches/apply_business_removal.py
 python patches/apply_home_removal.py
+python patches/apply_home2_removal.py
 python patches/repack_apk.py
 zipalign -p -f 4 ...unsigned.apk ...aligned.apk
 apksigner sign --ks qinsilk-debug.jks --ks-type JKS --ks-key-alias qinsilk \
