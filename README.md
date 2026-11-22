@@ -16,13 +16,15 @@
 | 4 | 移除首页模块 | 删除首页“智能客户分群营销”“便捷服务”“切换到旧版首页”按钮 |
 | 5 | 移除首页 Banner 与入口 | 删除顶部 Banner、活动横幅、“生意赋能”“邀请有礼” |
 | 6 | 移除基础页入口 | 删除“招商合作、邀请有礼、秦丝微信服务、生意赋能”及“智能短信”菜单项 |
+| 7 | 页面清理与包体精简 | 删首页销货宝卡、开单智能短信、客户详情营销字段；删 `.map`、仅保留 arm64 |
 
 详细说明见 `docs/`。
 
 ## 产物
 
 - `dist/qinsilk_5.31.5_no-marketing-optimized.apk`
-  - SHA-256：`BC6BE3A83458F143EC9B8E393DCE27F4F403B9F2BD0A165A51D4B70A34ED312E`
+  - SHA-256：`814373BF710E13CD876C7499BDE29AE83958D3F2BFEB3365E18E59A2E5F238BC`
+  - 大小：79,228,995 B（arm64-v8a，仅 64 位设备）
   - 签名：v1 + v2 + v3（自签名证书 `CN=Qinsilk Debug`）
   - 与原包签名不同，安装前需卸载旧包
 
@@ -36,6 +38,7 @@ python patches/apply_business_removal.py
 python patches/apply_home_removal.py
 python patches/apply_home2_removal.py
 python patches/apply_base_removal.py
+python patches/apply_cleanup2.py
 python patches/repack_apk.py
 zipalign -p -f 4 ...unsigned.apk ...aligned.apk
 apksigner sign --ks qinsilk-debug.jks --ks-type JKS --ks-key-alias qinsilk \
