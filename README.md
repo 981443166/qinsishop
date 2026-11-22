@@ -23,7 +23,9 @@
 
 ## 产物
 
-- `dist/qinsilk_5.31.5_no-marketing-optimized.apk`
+**Release 下载（推荐）**：<https://github.com/981443166/qinsishop/releases/tag/v5.31.5-custom.1>
+
+- `dist/qinsilk_5.31.5_no-marketing-optimized.apk`（与 Release 附件相同）
   - SHA-256：`D3C0B8907982BB0C515528FB7797B9D2D3C6B092785364842214EBD4583B473D`
   - 大小：79,228,995 B（arm64-v8a，仅 64 位设备）
   - 签名：v1 + v2 + v3（自签名证书 `CN=Qinsilk Debug`）
